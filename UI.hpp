@@ -1,0 +1,234 @@
+#pragma once
+#include "Common.hpp"
+
+#include <furi.h>
+#include <gui/gui.h>
+#include <gui/icon_i.h>
+#include <gui/view_dispatcher.h>
+#include <functional>
+#include <vector>
+
+#include <gui/modules/menu.h>
+#include <gui/modules/button_menu.h>
+#include <gui/modules/button_panel.h>
+#include <gui/modules/byte_input.h>
+#include <gui/modules/dialog_ex.h>
+#include <gui/modules/empty_screen.h>
+#include <gui/modules/loading.h>
+#include <gui/modules/popup.h>
+#include <gui/modules/submenu.h>
+#include <gui/modules/text_box.h>
+#include <gui/modules/text_input.h>
+#include <gui/modules/variable_item_list.h>
+#include <gui/modules/widget.h>
+
+// Generates a function from a prefix and postfix, for example given (menu, free) will return the function with the name
+// menu_free
+#define FROM_PREFIX(x, y) x##_##y
+
+// Generates default implementation for components of a specific type.
+// x - The component type
+// y - The name of the component, should match flipper zero function prefixes for the given component
+#define UFZ_COMPONENT(x, y) public:                                                             \
+    using UWidget::UWidget;                                                                     \
+    inline operator ::x*() noexcept { return y; };                                              \
+    x() = default;                                                                              \
+    virtual ~x() noexcept override { free(); };                                                 \
+    inline virtual void reset() noexcept override { FROM_PREFIX(y, reset)(y); };                \
+private:                                                                                        \
+    ::x* y = nullptr;                                                                           \
+    inline virtual View* getView() noexcept override { return FROM_PREFIX(y, get_view)(y); };   \
+    inline virtual void alloc() noexcept override { (y) = FROM_PREFIX(y, alloc)(); };           \
+    inline virtual void free() noexcept override { FREE_GUARD(FROM_PREFIX(y, free), y); };
+
+#define GET_WIDGET_P(x, y, z) ((UFZ::Application*)(x))->getWidget<y>(z)
+#define GOTO_SCENE(x, y) ((UFZ::Application*)(x))->getViewDispatcher().switchToView(y)
+
+namespace UFZ
+{
+    class Application;
+
+    class UWidget
+    {
+    public:
+        UWidget() = default;
+        UWidget(AppSceneOnEnterCallback onEnter, AppSceneOnEventCallback onEvent, AppSceneOnExitCallback onExit) noexcept
+            : enter(onEnter), event(onEvent), exit(onExit)
+        {
+
+        }
+        virtual ~UWidget() = default;
+
+        virtual void reset() noexcept = 0;
+
+        AppSceneOnEnterCallback enter{};
+        AppSceneOnEventCallback event{};
+        AppSceneOnExitCallback exit{};
+
+        Application* application = nullptr;
+    private:
+        friend class Application;
+
+        size_t id = 0;
+
+        virtual View* getView() noexcept = 0;
+        virtual void alloc() noexcept = 0;
+        virtual void free() noexcept = 0;
+    };
+
+    class Menu : public UWidget
+    {
+        UFZ_COMPONENT(Menu, menu);
+    public:
+        const Menu& addItem(const char* label, const Icon* icon, uint32_t index, MenuItemCallback callback, void* context) const noexcept;
+        void setSelectedItem(uint32_t index) const noexcept;
+    };
+
+    class ButtonMenu : public UWidget
+    {
+        UFZ_COMPONENT(ButtonMenu, button_menu);
+    public:
+        ButtonMenuItem* addItem(const char* label, int32_t index, ButtonMenuItemCallback callback, ButtonMenuItemType type, void* context) const noexcept;
+        void setHeader(const char* header) const;
+        void setSelectedItem(uint32_t index) const noexcept;
+    };
+
+    class ButtonPanel : public UWidget
+    {
+        UFZ_COMPONENT(ButtonPanel, button_panel);
+    public:
+        void reserve(size_t x, size_t y) const noexcept;
+        const ButtonPanel& addItem(uint32_t index,
+                     uint16_t matrix_place_x, uint16_t matrix_place_y,
+                     uint16_t x, uint16_t y,
+                     const Icon* icon_name, const Icon* icon_name_selected,
+                     ButtonItemCallback callback, void* context) const noexcept;
+
+        const ButtonPanel& addLabel(uint16_t x, uint16_t y, Font font, const char* label) const noexcept;
+        const ButtonPanel& addIcon(uint16_t x, uint16_t y, const Icon* icon) const noexcept;
+    };
+
+    class ByteInput : public UWidget
+    {
+    public:
+        ByteInput() = default;
+        virtual ~ByteInput() noexcept override;
+
+        void setResultCallback(ByteInputCallback inputCallback, ByteChangedCallback changedCallback, void* context, uint8_t* bytes, uint8_t bytesCount) noexcept;
+        void setHeaderText(const char* text) noexcept;
+    private:
+        ::ByteInput* byte_input = nullptr;
+
+        virtual View* getView() noexcept override;
+        virtual void alloc() noexcept override;
+        virtual void free() noexcept override;
+    };
+
+    class DialogEx : public UWidget
+    {
+        UFZ_COMPONENT(DialogEx, dialog_ex);
+    public:
+        const DialogEx& setResultCallback(DialogExResultCallback callback) const noexcept;
+        const DialogEx& setContext(void* context) const noexcept;
+        const DialogEx& setHeader(const char* text, uint8_t x, uint8_t y, Align horizontal, Align vertical) const noexcept;
+        const DialogEx& setText(const char* text, uint8_t x, uint8_t y, Align horizontal, Align vertical) const noexcept;
+        const DialogEx& setIcon(uint8_t x, uint8_t y, const Icon* icon) const noexcept;
+        const DialogEx& setLeftButtonText(const char* text) const noexcept;
+        const DialogEx& setCenterButtonText(const char* text) const noexcept;
+        const DialogEx& setRightButtonText(const char* text) const noexcept;
+        void enableExtendedEvents() const noexcept;
+        void disableExtendedEvents() const noexcept;
+    };
+
+    class EmptyScreen : public UWidget
+    {
+    public:
+        EmptyScreen() = default;
+        virtual ~EmptyScreen() noexcept override;
+    private:
+        ::EmptyScreen* empty_screen = nullptr;
+
+        virtual void free() noexcept override;
+        virtual void alloc() noexcept override;
+        virtual View* getView() noexcept override;
+    };
+
+    class Loading : public UWidget
+    {
+    public:
+        Loading() = default;
+        virtual ~Loading() noexcept override;
+    private:
+        ::Loading* loading = nullptr;
+
+        virtual void free() noexcept override;
+        virtual void alloc() noexcept override;
+        virtual View* getView() noexcept override;
+    };
+
+    class Popup : public UWidget
+    {
+        UFZ_COMPONENT(Popup, popup);
+    public:
+        const Popup& setCallback(PopupCallback callback) const noexcept;
+        const Popup& setContext(void* context) const noexcept;
+        const Popup& setHeader(const char* text, uint8_t x, uint8_t y, Align horizontal, Align vertical) const noexcept;
+        const Popup& setText(const char* text, uint8_t x, uint8_t y, Align horizontal, Align vertical) const noexcept;
+        const Popup& setIcon(uint8_t x, uint8_t y, const Icon* icon) const noexcept;
+        [[nodiscard]] const Popup& setTimeout(uint32_t milliseconds) const noexcept;
+
+        void enableTimeout() const noexcept;
+        void disableTimout() const noexcept;
+    };
+
+    class Submenu : public UWidget
+    {
+        UFZ_COMPONENT(Submenu, submenu);
+    public:
+        [[nodiscard]] const Submenu& addItem(const char* label, uint32_t index, SubmenuItemCallback callback, void* context) const noexcept;
+        [[nodiscard]] const Submenu& setSelectedItem(uint32_t index) const noexcept;
+        [[nodiscard]] const Submenu& setHeader(const char* header) const noexcept;
+    };
+
+    class TextBox : public UWidget
+    {
+        UFZ_COMPONENT(TextBox, text_box);
+    public:
+        const TextBox& setText(const char* text) const noexcept;
+        [[nodiscard]] const TextBox& setFont(TextBoxFont font) const noexcept;
+        [[nodiscard]] const TextBox& setFocus(TextBoxFocus focus) const noexcept;
+    };
+
+    class TextInput : public UWidget
+    {
+        UFZ_COMPONENT(TextInput, text_input);
+    public:
+        void setResultCallback(TextInputCallback callback, void* callbackContext, char* textBuffer, size_t textBufferSize, bool clearDefaultText) const noexcept;
+        void setValidator(TextInputValidatorCallback callback, void* context) const noexcept;
+        void getValidatorCallbackContext() const noexcept;
+        void setHeaderText(const char* text) const noexcept;
+    };
+
+    class VariableItemList : public UWidget
+    {
+        UFZ_COMPONENT(VariableItemList, variable_item_list);
+    public:
+        VariableItem* add(const char* label, uint8_t values_count, VariableItemChangeCallback callback, void* context) const noexcept;
+        void setEnterCallback(VariableItemListEnterCallback callback, void* context) const noexcept;
+        void setSelectedItem(uint8_t index) const noexcept;
+        [[nodiscard]] uint8_t getSelectedItemIndex() const noexcept;
+    };
+
+    class Widget : public UWidget
+    {
+        UFZ_COMPONENT(Widget, widget);
+    public:
+        const Widget& addStringMultilineElement(uint8_t x, uint8_t y, Align horizontal, Align vertical, Font font, const char* text) const noexcept;
+        const Widget& addStringElement(uint8_t x, uint8_t y, Align horizontal, Align vertical, Font font, const char* text) const noexcept;
+        const Widget& addTextBoxElement(uint8_t x, uint8_t y, uint8_t width, uint8_t height, Align horizontal, Align vertical, const char* text, bool stripToDots) const noexcept;
+        const Widget& addTextScrollElement(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const char* text) const noexcept;
+        const Widget& addButtonElement(GuiButtonType type, const char* text, ButtonCallback callback, void* context) const noexcept;
+        const Widget& addIconElement(uint8_t x, uint8_t y, const Icon* icon) const noexcept;
+        [[nodiscard]] const Widget& addFrameElement(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t radius) const noexcept;
+    };
+}
