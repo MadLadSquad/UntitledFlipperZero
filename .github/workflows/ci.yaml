@@ -14,6 +14,6 @@ jobs:
           sdk-channel: release
           task: setup
       - name: Clone test
-        run: "git clone https://github.com/MadLadSquad/UFZ-Tasks.git --recursive && cp *.hpp *.cpp UFZ-Tasks/UFZ"
+        run: "git clone https://github.com/MadLadSquad/FlipperTasks.git --recursive && cp *.hpp *.cpp FlipperTasks/UFZ"
       - name: Compile
-        run: "cd UFZ-Tasks/ && ufbt"
+        run: "cd FlipperTasks/ && ufbt"
