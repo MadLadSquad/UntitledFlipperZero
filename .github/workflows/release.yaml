@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           rm -rf .git/
-          tar cfJ untitled-imgui-framework.tar.xz . || echo "Might have failed"
+          tar cfJ untitled-flipper-zero.tar.xz . || echo "Might have failed"
       - name: Create Release
         uses: softprops/action-gh-release@master
         with:
@@ -32,5 +32,5 @@ jobs:
             More on what is done this month can be found on the latest newsletter entry: https://madladsquad.com/#monthly-newsletter
           draft: false
           prerelease: false
-          files: untitled-imgui-framework.tar.xz
+          files: untitled-flipper-zero.tar.xz
           generate_release_notes: false
