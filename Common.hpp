@@ -2,6 +2,7 @@
 #include <vector>
 #include <functional>
 #include <furi.h>
+#include <storage/storage.h>
 #include <gui/gui.h>
 #include <gui/icon_i.h>
 #include <gui/view_dispatcher.h>
@@ -50,7 +51,7 @@ namespace UFZ
 
         [[nodiscard]] bool searchAndSwitchToPreviousScene(uint32_t id) const noexcept;
         bool searchAndSwitchToPreviousSceneOneOf(const uint32_t* ids, size_t idsSize) const noexcept;
-        void searchAndSwitchToAnotherScene(uint32_t id) const noexcept;
+        [[nodiscard]] bool searchAndSwitchToAnotherScene(uint32_t id) const noexcept;
 
         ~SceneManager();
     private:
@@ -62,6 +63,51 @@ namespace UFZ
 
         ::SceneManager* sceneManager = nullptr;
         Application* application = nullptr;
+    };
+
+    class Filesystem
+    {
+    public:
+        Filesystem() = default;
+
+        FS_Error timestamp(const char* path, uint32_t* timestamp) const noexcept;
+        FS_Error stat(const char* path, FileInfo* fileInfo) const noexcept;
+        bool exists(const char* path) const noexcept;
+        FS_Error remove(const char* path) const noexcept;
+
+        FS_Error rename(const char* oldPath, const char* newPath) const noexcept;
+
+        FS_Error copy(const char* oldPath, const char* newPath) const noexcept;
+        FS_Error merge(const char* oldPath, const char* newPath) const noexcept;
+        FS_Error migrate(const char* source, const char* destination) const noexcept;
+
+        FS_Error mkdir(const char* path) const noexcept;
+        FS_Error filesystemInfo(const char* path, uint64_t* totalSpace, uint64_t* freeSpace) const noexcept;
+
+        void resolvePathAndEnsureAppDirectory(FuriString* path) const noexcept;
+
+        bool areEquivalent(const char* path1, const char* path2, bool bTruncate) const noexcept;
+
+        [[nodiscard]] static const char* getErrorDescription(FS_Error error) noexcept;
+
+        FS_Error SDCardInfo(SDInfo* info) const noexcept;
+        [[nodiscard]] FS_Error SDCardStatus() const noexcept;
+
+        bool removeSimple(const char* path) const noexcept;
+        bool removeRecursiveSimple(const char* path) const noexcept;
+        bool mkdirSimple(const char* path) const noexcept;
+        void getNextFilename(const char* dirname, const char* filename, const char* fileExtension, FuriString* nextFilename, uint8_t maxLength) const noexcept;
+
+        ~Filesystem() noexcept;
+    private:
+        friend class Application;
+        friend class File;
+        friend class Directory;
+
+        void init() noexcept;
+        void destroy() noexcept;
+
+        ::Storage* storage = nullptr;
     };
 
     class Application
@@ -80,14 +126,17 @@ namespace UFZ
         const ViewDispatcher& getViewDispatcher() noexcept;
         const SceneManager& getSceneManager() noexcept;
 
+        const Filesystem& getFilesystem() noexcept;
+
         void* getUserPointer() noexcept;
 
         void destroy() noexcept;
-        ~Application() noexcept;
     private:
         SceneManager sceneManager;
         ViewDispatcher viewDispatcher;
         Gui* gui = nullptr;
+
+        Filesystem filesystem{};
 
         void* ctx = nullptr;
         size_t tickInterval = 0;
@@ -99,6 +148,8 @@ namespace UFZ
         SceneManagerHandlers handlers{};
 
         std::vector<UWidget*> widgets;
+
+        bool bDestroyed = false;
 
         void initSceneManager() noexcept;
         void initViewDispatcher() noexcept;

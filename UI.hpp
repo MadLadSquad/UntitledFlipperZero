@@ -1,10 +1,7 @@
 #pragma once
 #include "Common.hpp"
+#include "Filesystem.hpp"
 
-#include <furi.h>
-#include <gui/gui.h>
-#include <gui/icon_i.h>
-#include <gui/view_dispatcher.h>
 #include <functional>
 #include <vector>
 
@@ -22,6 +19,12 @@
 #include <gui/modules/variable_item_list.h>
 #include <gui/modules/widget.h>
 
+#include <gui/view_stack.h>
+#include <furi.h>
+#include <gui/gui.h>
+#include <gui/icon_i.h>
+#include <gui/view_dispatcher.h>
+
 // Generates a function from a prefix and postfix, for example given (menu, free) will return the function with the name
 // menu_free
 #define FROM_PREFIX(x, y) x##_##y
@@ -29,16 +32,16 @@
 // Generates default implementation for components of a specific type.
 // x - The component type
 // y - The name of the component, should match flipper zero function prefixes for the given component
-#define UFZ_COMPONENT(x, y) public:                                                             \
-    using UWidget::UWidget;                                                                     \
-    inline operator ::x*() noexcept { return y; };                                              \
-    x() = default;                                                                              \
-    virtual ~x() noexcept override { free(); };                                                 \
-    inline virtual void reset() noexcept override { FROM_PREFIX(y, reset)(y); };                \
-private:                                                                                        \
-    ::x* y = nullptr;                                                                           \
-    inline virtual View* getView() noexcept override { return FROM_PREFIX(y, get_view)(y); };   \
-    inline virtual void alloc() noexcept override { (y) = FROM_PREFIX(y, alloc)(); };           \
+#define UFZ_COMPONENT(x, y) public:                                                                                 \
+    using UWidget::UWidget;                                                                                         \
+    inline operator ::x*() noexcept { return y; };                                                                  \
+    x() = default;                                                                                                  \
+    virtual ~x() noexcept override { destroy(); };                                                                     \
+    inline virtual UFZ::View getWidgetView() noexcept override { return UFZ::View(FROM_PREFIX(y, get_view)(y)); }   \
+    inline virtual void reset() noexcept override { FROM_PREFIX(y, reset)(y); };                                    \
+private:                                                                                                            \
+    ::x* y = nullptr;                                                                                               \
+    inline virtual void alloc() noexcept override { (y) = FROM_PREFIX(y, alloc)(); };                               \
     inline virtual void free() noexcept override { FREE_GUARD(FROM_PREFIX(y, free), y); };
 
 #define GET_WIDGET_P(x, y, z) ((UFZ::Application*)(x))->getWidget<y>(z)
@@ -48,16 +51,59 @@ namespace UFZ
 {
     class Application;
 
+    class View
+    {
+    public:
+        View() = default;
+        explicit View(::View* v) noexcept;
+        operator ::View*() noexcept;
+
+        View& allocate() noexcept;
+
+        void setDeferredSetupCallback(const std::function<void(View&)>& f) noexcept;
+
+        [[nodiscard]] const View& setDrawCallback(ViewDrawCallback callback) const noexcept;
+        [[nodiscard]] const View& setInputCallback(ViewInputCallback callback) const noexcept;
+        [[nodiscard]] const View& setCustomCallback(ViewCustomCallback callback) const noexcept;
+
+        [[nodiscard]] const View& setPreviousCallback(ViewNavigationCallback callback) const noexcept;
+        [[nodiscard]] const View& setEnterCallback(ViewCallback callback) const noexcept;
+        [[nodiscard]] const View& setExitCallback(ViewCallback callback) const noexcept;
+
+        [[nodiscard]] const View& setUpdateCallback(ViewUpdateCallback callback) const noexcept;
+
+        [[nodiscard]] const View& setUpdateCallbackContext(void* context) const noexcept;
+        [[nodiscard]] const View& setContext(void* context) const noexcept;
+
+        [[nodiscard]] const View& setOrientation(ViewOrientation orientation) const noexcept;
+
+        [[nodiscard]] const View& allocateModel(ViewModelType type, size_t size) const noexcept;
+        [[nodiscard]] const View& freeModel() const noexcept;
+        [[nodiscard]] void* getModel() const noexcept;
+        [[nodiscard]] const View& commitModel(bool bUpdate) const noexcept;
+
+        void free() noexcept;
+        ~View() noexcept;
+    private:
+        friend class UWidget;
+        bool bAllocated = false;
+
+        std::function<void(View&)> deferredSetupCallback{};
+
+        ::View* view = nullptr;
+    };
+
     class UWidget
     {
     public:
         UWidget() = default;
-        UWidget(AppSceneOnEnterCallback onEnter, AppSceneOnEventCallback onEvent, AppSceneOnExitCallback onExit) noexcept
-            : enter(onEnter), event(onEvent), exit(onExit)
+        UWidget(AppSceneOnEnterCallback onEnter, AppSceneOnEventCallback onEvent, AppSceneOnExitCallback onExit, const std::vector<View*>& additionalViews = {}) noexcept
+            : enter(onEnter), event(onEvent), exit(onExit), views(additionalViews)
         {
-
         }
-        virtual ~UWidget() = default;
+
+        virtual ~UWidget() noexcept = default;
+        void destroy();
 
         virtual void reset() noexcept = 0;
 
@@ -66,12 +112,24 @@ namespace UFZ
         AppSceneOnExitCallback exit{};
 
         Application* application = nullptr;
+
+        void addView(const UFZ::View& view) noexcept;
+        void removeView(const UFZ::View& view) noexcept;
     private:
         friend class Application;
 
         size_t id = 0;
+        std::vector<View*> views{};
 
-        virtual View* getView() noexcept = 0;
+        ::ViewStack* viewStack = nullptr;
+
+        bool bDestroyed = false;
+
+        void allocateViewStack(const View& widgetView) noexcept;
+
+        View getView() noexcept;
+        virtual View getWidgetView() noexcept = 0;
+
         virtual void alloc() noexcept = 0;
         virtual void free() noexcept = 0;
     };
@@ -119,9 +177,9 @@ namespace UFZ
     private:
         ::ByteInput* byte_input = nullptr;
 
-        virtual View* getView() noexcept override;
         virtual void alloc() noexcept override;
         virtual void free() noexcept override;
+        virtual View getWidgetView() noexcept override;
     };
 
     class DialogEx : public UWidget
@@ -150,7 +208,7 @@ namespace UFZ
 
         virtual void free() noexcept override;
         virtual void alloc() noexcept override;
-        virtual View* getView() noexcept override;
+        virtual View getWidgetView() noexcept override;
     };
 
     class Loading : public UWidget
@@ -163,7 +221,7 @@ namespace UFZ
 
         virtual void free() noexcept override;
         virtual void alloc() noexcept override;
-        virtual View* getView() noexcept override;
+        virtual View getWidgetView() noexcept override;
     };
 
     class Popup : public UWidget

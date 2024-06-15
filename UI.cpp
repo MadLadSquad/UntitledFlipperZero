@@ -1,4 +1,175 @@
 #include "UI.hpp"
+#include <Scenes/Scenes.hpp> // TODO: Remove
+
+// =====================================================================================================================
+// ======================================================= Views =======================================================
+// =====================================================================================================================
+
+UFZ::View::View(::View* v) noexcept
+{
+    view = v;
+}
+
+UFZ::View::operator ::View*() noexcept
+{
+    return view;
+}
+
+UFZ::View& UFZ::View::allocate() noexcept
+{
+    view = view_alloc();
+    bAllocated = true;
+    return *this;
+}
+
+void UFZ::View::free() noexcept
+{
+    if (view != nullptr && bAllocated)
+        view_free(view);
+    view = nullptr;
+    bAllocated = false;
+}
+
+UFZ::View::~View() noexcept
+{
+    free();
+}
+
+const UFZ::View& UFZ::View::setDrawCallback(ViewDrawCallback callback) const noexcept
+{
+    view_set_draw_callback(view, callback);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::setInputCallback(ViewInputCallback callback) const noexcept
+{
+    view_set_input_callback(view, callback);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::setCustomCallback(ViewCustomCallback callback) const noexcept
+{
+    view_set_custom_callback(view, callback);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::setPreviousCallback(ViewNavigationCallback callback) const noexcept
+{
+    view_set_previous_callback(view, callback);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::setEnterCallback(ViewCallback callback) const noexcept
+{
+    view_set_enter_callback(view, callback);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::setExitCallback(ViewCallback callback) const noexcept
+{
+    view_set_exit_callback(view, callback);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::setUpdateCallback(ViewUpdateCallback callback) const noexcept
+{
+    view_set_update_callback(view, callback);
+    return *this;
+}
+
+const UFZ::View &UFZ::View::setUpdateCallbackContext(void* context) const noexcept
+{
+    view_set_update_callback_context(view, context);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::setContext(void* context) const noexcept
+{
+    view_set_context(view, context);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::setOrientation(ViewOrientation orientation) const noexcept
+{
+    view_set_orientation(view, orientation);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::allocateModel(ViewModelType type, size_t size) const noexcept
+{
+    view_allocate_model(view, type, size);
+    return *this;
+}
+
+const UFZ::View& UFZ::View::freeModel() const noexcept
+{
+    view_free_model(view);
+    return *this;
+}
+
+void* UFZ::View::getModel() const noexcept
+{
+    return view_get_model(view);
+}
+
+const UFZ::View& UFZ::View::commitModel(bool bUpdate) const noexcept
+{
+    view_commit_model(view, bUpdate);
+    return *this;
+}
+
+void UFZ::View::setDeferredSetupCallback(const std::function<void(View&)>& f) noexcept
+{
+    deferredSetupCallback = f;
+}
+
+// =====================================================================================================================
+// =================================================== Generic Widget ==================================================
+// =====================================================================================================================
+
+void UFZ::UWidget::addView(const UFZ::View& view) noexcept
+{
+    view_stack_add_view(viewStack, view.view);
+}
+
+void UFZ::UWidget::removeView(const View& view) noexcept
+{
+    view_stack_remove_view(viewStack, view.view);
+}
+
+UFZ::View UFZ::UWidget::getView() noexcept
+{
+    return UFZ::View(view_stack_get_view(viewStack));
+}
+
+void UFZ::UWidget::allocateViewStack(const View& widgetView) noexcept
+{
+    viewStack = view_stack_alloc();
+    addView(widgetView);
+
+    for (auto& a : views)
+    {
+        a->allocate();
+        addView(*a);
+        a->deferredSetupCallback(*a);
+    }
+}
+
+void UFZ::UWidget::destroy()
+{
+    if (!bDestroyed)
+    {
+        for (auto& a : views)
+        {
+            removeView(*a);
+            a->free();
+        }
+        removeView(getWidgetView());
+        FREE_GUARD(view_stack_free, viewStack);
+        free();
+    }
+    bDestroyed = true;
+}
 
 // =====================================================================================================================
 // ====================================================== Widgets ======================================================
@@ -84,9 +255,9 @@ void UFZ::ByteInput::setHeaderText(const char* text) noexcept
     byte_input_set_header_text(byte_input, text);
 }
 
-View* UFZ::ByteInput::getView() noexcept
+UFZ::View UFZ::ByteInput::getWidgetView() noexcept
 {
-    return byte_input_get_view(byte_input);
+    return UFZ::View(byte_input_get_view(byte_input));
 }
 
 void UFZ::ByteInput::alloc() noexcept
@@ -180,9 +351,9 @@ void UFZ::EmptyScreen::alloc() noexcept
     empty_screen_alloc();
 }
 
-View* UFZ::EmptyScreen::getView() noexcept
+UFZ::View UFZ::EmptyScreen::getWidgetView() noexcept
 {
-    return empty_screen_get_view(empty_screen);
+    return UFZ::View(empty_screen_get_view(empty_screen));
 }
 
 // =====================================================================================================================
@@ -204,9 +375,9 @@ void UFZ::Loading::alloc() noexcept
     loading = loading_alloc();
 }
 
-View* UFZ::Loading::getView() noexcept
+UFZ::View UFZ::Loading::getWidgetView() noexcept
 {
-    return loading_get_view(loading);
+    return UFZ::View(loading_get_view(loading));
 }
 
 // =====================================================================================================================

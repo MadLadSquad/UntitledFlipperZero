@@ -32,6 +32,7 @@ void UFZ::Application::init(const std::vector<UWidget*>& widgetsRef, void* userP
     initSceneManager();
     initViewDispatcher();
     initGUI();
+    filesystem.init();
 
     sceneManager.nextScene(0);
     view_dispatcher_run(viewDispatcher.viewDispatcher);
@@ -52,7 +53,8 @@ void UFZ::Application::initViewDispatcher() noexcept
         a->application = this;
         a->id = i;
         a->alloc();
-        view_dispatcher_add_view(viewDispatcher.viewDispatcher, i, widgets[i]->getView());
+        a->allocateViewStack(a->getWidgetView());
+        view_dispatcher_add_view(viewDispatcher.viewDispatcher, i, a->getView());
     }
 
     view_dispatcher_set_event_callback_context(viewDispatcher.viewDispatcher, this);
@@ -82,14 +84,14 @@ void UFZ::Application::initGUI() noexcept
 
 void UFZ::Application::destroy() noexcept
 {
-    freeSceneManager();
-    freeViewDispatcher();
-    freeGUI();
-}
-
-UFZ::Application::~Application() noexcept
-{
-    destroy();
+    if (!bDestroyed)
+    {
+        freeSceneManager();
+        freeViewDispatcher();
+        freeGUI();
+        filesystem.destroy();
+    }
+    bDestroyed = true;
 }
 
 void UFZ::Application::freeSceneManager() noexcept
@@ -100,10 +102,7 @@ void UFZ::Application::freeSceneManager() noexcept
 void UFZ::Application::freeViewDispatcher() noexcept
 {
     for (size_t i = 0; i < widgets.size(); i++)
-    {
         view_dispatcher_remove_view(viewDispatcher.viewDispatcher, i);
-        widgets[i]->free();
-    }
     viewDispatcher.free();
 }
 
@@ -127,10 +126,14 @@ void* UFZ::Application::getUserPointer() noexcept
     return ctx;
 }
 
+const UFZ::Filesystem& UFZ::Application::getFilesystem() noexcept
+{
+    return filesystem;
+}
+
 // =====================================================================================================================
 // ================================================== View dispatcher ==================================================
 // =====================================================================================================================
-
 
 void UFZ::ViewDispatcher::init() noexcept
 {
@@ -217,9 +220,9 @@ bool UFZ::SceneManager::searchAndSwitchToPreviousSceneOneOf(const uint32_t* ids,
     return scene_manager_search_and_switch_to_previous_scene_one_of(sceneManager, ids, idsSize);
 }
 
-void UFZ::SceneManager::searchAndSwitchToAnotherScene(uint32_t id) const noexcept
+bool UFZ::SceneManager::searchAndSwitchToAnotherScene(uint32_t id) const noexcept
 {
-    scene_manager_search_and_switch_to_another_scene(sceneManager, id);
+    return scene_manager_search_and_switch_to_another_scene(sceneManager, id);
 }
 
 void UFZ::SceneManager::stop() const noexcept
