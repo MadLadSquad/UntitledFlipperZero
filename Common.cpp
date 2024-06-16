@@ -1,12 +1,12 @@
 #include "Common.hpp"
 #include "UI.hpp"
 
-UFZ::Application::Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, uint32_t tickPeriod) noexcept
+UFZ::Application::Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, uint32_t tickPeriod) noexcept
 {
-    init(widgetsRef, userPointer, tickPeriod);
+    init(widgetsRef, userPointer, begin, tickPeriod);
 }
 
-void UFZ::Application::init(const std::vector<UWidget*>& widgetsRef, void* userPointer, uint32_t tickPeriod) noexcept
+void UFZ::Application::init(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, uint32_t tickPeriod) noexcept
 {
     widgets = widgetsRef;
     tickInterval = tickPeriod;
@@ -29,10 +29,12 @@ void UFZ::Application::init(const std::vector<UWidget*>& widgetsRef, void* userP
     handlers.on_exit_handlers = exitCallbacks.data();
     memcpy((void*)&handlers.scene_num, (void*)&size, sizeof(uint32_t));
 
+    filesystem.init();
+    begin(*this);
+
     initSceneManager();
     initViewDispatcher();
     initGUI();
-    filesystem.init();
 
     sceneManager.nextScene(0);
     view_dispatcher_run(viewDispatcher.viewDispatcher);

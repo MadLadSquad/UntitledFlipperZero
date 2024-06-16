@@ -114,8 +114,8 @@ namespace UFZ
     {
     public:
         Application() = default;
-        explicit Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, uint32_t tickPeriod = 0) noexcept;
-        void init(const std::vector<UWidget*>& widgetsRef, void* userPointer, uint32_t tickPeriod = 0) noexcept;
+        explicit Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin = [](Application&) -> void {}, uint32_t tickPeriod = 0) noexcept;
+        void init(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin = [](Application&) -> void {}, uint32_t tickPeriod = 0) noexcept;
 
         template<typename T>
         T* getWidget(size_t i) noexcept
