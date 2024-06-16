@@ -60,11 +60,13 @@ void UFZ::Application::initViewDispatcher() noexcept
     view_dispatcher_set_event_callback_context(viewDispatcher.viewDispatcher, this);
     view_dispatcher_set_custom_event_callback(viewDispatcher.viewDispatcher, [](void* context, uint32_t customEvent) -> bool {
         furi_assert(context);
-        return static_cast<Application*>(context)->sceneManager.handleCustomEvent(customEvent);
+        UNUSED(static_cast<Application*>(context)->sceneManager.handleCustomEvent(customEvent));
+        return true;
     });
     view_dispatcher_set_navigation_event_callback(viewDispatcher.viewDispatcher, [](void* context) -> bool {
         furi_assert(context);
-        return static_cast<Application*>(context)->sceneManager.handleBackEvent();
+        UNUSED(static_cast<Application*>(context)->sceneManager.handleBackEvent());
+        return true;
     });
 
     if (tickInterval > 0)

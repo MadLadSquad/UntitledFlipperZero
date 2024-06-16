@@ -1,5 +1,4 @@
 #include "UI.hpp"
-#include <Scenes/Scenes.hpp> // TODO: Remove
 
 // =====================================================================================================================
 // ======================================================= Views =======================================================
@@ -155,7 +154,7 @@ void UFZ::UWidget::allocateViewStack(const View& widgetView) noexcept
     }
 }
 
-void UFZ::UWidget::destroy()
+void UFZ::UWidget::destroy() noexcept
 {
     if (!bDestroyed)
     {
