@@ -60,7 +60,6 @@ namespace UFZ
         friend class Directory;
 
         ::File* file = nullptr;
-        //Filesystem storage{};
         Filesystem* storage = nullptr;
 
         void init() noexcept;

@@ -45,7 +45,7 @@ private:                                                                        
     inline virtual void free() noexcept override { FREE_GUARD(FROM_PREFIX(y, free), y); };
 
 #define GET_WIDGET_P(x, y, z) ((UFZ::Application*)(x))->getWidget<y>(z)
-#define GOTO_SCENE(x, y) ((UFZ::Application*)(x))->getViewDispatcher().switchToView(y)
+#define RENDER_VIEW(x, y) ((UFZ::Application*)(x))->getViewDispatcher().switchToView(y)
 
 namespace UFZ
 {
@@ -103,7 +103,7 @@ namespace UFZ
         }
 
         virtual ~UWidget() noexcept = default;
-        void destroy();
+        void destroy() noexcept;
 
         virtual void reset() noexcept = 0;
 
@@ -112,9 +112,6 @@ namespace UFZ
         AppSceneOnExitCallback exit{};
 
         Application* application = nullptr;
-
-        void addView(const UFZ::View& view) noexcept;
-        void removeView(const UFZ::View& view) noexcept;
     private:
         friend class Application;
 
@@ -126,6 +123,9 @@ namespace UFZ
         bool bDestroyed = false;
 
         void allocateViewStack(const View& widgetView) noexcept;
+
+        void addView(const UFZ::View& view) noexcept;
+        void removeView(const UFZ::View& view) noexcept;
 
         View getView() noexcept;
         virtual View getWidgetView() noexcept = 0;
