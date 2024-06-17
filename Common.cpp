@@ -60,20 +60,21 @@ void UFZ::Application::initViewDispatcher() noexcept
     }
 
     view_dispatcher_set_event_callback_context(viewDispatcher.viewDispatcher, this);
-    view_dispatcher_set_custom_event_callback(viewDispatcher.viewDispatcher, [](void* context, uint32_t customEvent) -> bool {
+    view_dispatcher_set_custom_event_callback(viewDispatcher.viewDispatcher, [](void* context, uint32_t customEvent) -> bool
+    {
         furi_assert(context);
-        UNUSED(static_cast<Application*>(context)->sceneManager.handleCustomEvent(customEvent));
-        return true;
+        return static_cast<Application*>(context)->sceneManager.handleCustomEvent(customEvent);
     });
-    view_dispatcher_set_navigation_event_callback(viewDispatcher.viewDispatcher, [](void* context) -> bool {
+    view_dispatcher_set_navigation_event_callback(viewDispatcher.viewDispatcher, [](void* context) -> bool
+    {
         furi_assert(context);
-        UNUSED(static_cast<Application*>(context)->sceneManager.handleBackEvent());
-        return true;
+        return static_cast<Application*>(context)->sceneManager.handleBackEvent();
     });
 
     if (tickInterval > 0)
     {
-        view_dispatcher_set_tick_event_callback(viewDispatcher.viewDispatcher, [](void* context) -> void {
+        view_dispatcher_set_tick_event_callback(viewDispatcher.viewDispatcher, [](void* context) -> void
+        {
             furi_assert(context);
             static_cast<Application*>(context)->sceneManager.handleTickEvent();
         }, tickInterval);
@@ -168,6 +169,16 @@ void UFZ::ViewDispatcher::sendToBack() const noexcept
 UFZ::ViewDispatcher::~ViewDispatcher() noexcept
 {
     free();
+}
+
+void UFZ::ViewDispatcher::sendCustomEvent(uint32_t event) const noexcept
+{
+    view_dispatcher_send_custom_event(viewDispatcher, event);
+}
+
+void UFZ::ViewDispatcher::stop() const noexcept
+{
+    view_dispatcher_stop(viewDispatcher);
 }
 
 // =====================================================================================================================

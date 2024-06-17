@@ -6,8 +6,20 @@
 #include <gui/gui.h>
 #include <gui/icon_i.h>
 #include <gui/view_dispatcher.h>
+
 // Only frees if memory is allocated
 #define FREE_GUARD(x, y) if ((y) != nullptr) x(y); (y) = nullptr;
+
+#define SEND_CUSTOM_EVENT(x, y) (x)->getViewDispatcher().sendCustomEvent(y)
+
+// Navigates to a new scene without wiping the scenes stack
+#define NEXT_SCENE(x, y) UNUSED((x)->getSceneManager().nextScene(y))
+
+// Navigates to a new scene and wipes the scenes stack
+#define FORCE_NEXT_SCENE(x, y) UNUSED((x)->getSceneManager().searchAndSwitchToAnotherScene(y))
+
+#define EXIT_SCENE(x) (x)->getSceneManager().stop()
+#define EXIT_APPLICATION(x) (x)->getViewDispatcher().stop()
 
 namespace UFZ
 {
@@ -20,8 +32,12 @@ namespace UFZ
         ViewDispatcher() = default;
 
         void switchToView(uint32_t id) const noexcept;
+
+        void sendCustomEvent(uint32_t event) const noexcept;
         void sendToFront() const noexcept;
         void sendToBack() const noexcept;
+
+        void stop() const noexcept;
 
         ~ViewDispatcher() noexcept;
     private:
@@ -53,13 +69,14 @@ namespace UFZ
         bool searchAndSwitchToPreviousSceneOneOf(const uint32_t* ids, size_t idsSize) const noexcept;
         [[nodiscard]] bool searchAndSwitchToAnotherScene(uint32_t id) const noexcept;
 
+        void stop() const noexcept;
+
         ~SceneManager();
     private:
         friend class Application;
 
         void alloc(const SceneManagerHandlers& handlers, Application& app) noexcept;
         void free() noexcept;
-        void stop() const noexcept;
 
         ::SceneManager* sceneManager = nullptr;
         Application* application = nullptr;
