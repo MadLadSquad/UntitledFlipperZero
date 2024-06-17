@@ -3,10 +3,10 @@
 
 UFZ::Application::Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, uint32_t tickPeriod) noexcept
 {
-    init(widgetsRef, userPointer, begin, tickPeriod);
+    run(widgetsRef, userPointer, begin, tickPeriod);
 }
 
-void UFZ::Application::init(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, uint32_t tickPeriod) noexcept
+void UFZ::Application::run(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, uint32_t tickPeriod) noexcept
 {
     widgets = widgetsRef;
     tickInterval = tickPeriod;
@@ -47,6 +47,7 @@ void UFZ::Application::initSceneManager() noexcept
 
 void UFZ::Application::initViewDispatcher() noexcept
 {
+    viewDispatcher.application = this;
     viewDispatcher.init();
 
     for (size_t i = 0; i < widgets.size(); i++)
@@ -106,8 +107,6 @@ void UFZ::Application::freeSceneManager() noexcept
 
 void UFZ::Application::freeViewDispatcher() noexcept
 {
-    for (size_t i = 0; i < widgets.size(); i++)
-        view_dispatcher_remove_view(viewDispatcher.viewDispatcher, i);
     viewDispatcher.free();
 }
 
@@ -148,7 +147,16 @@ void UFZ::ViewDispatcher::init() noexcept
 
 void UFZ::ViewDispatcher::free() noexcept
 {
-    FREE_GUARD(view_dispatcher_free, viewDispatcher);
+    if (viewDispatcher != nullptr)
+    {
+        for (size_t i = 0; i < application->widgets.size(); i++)
+        {
+            view_dispatcher_remove_view(application->viewDispatcher.viewDispatcher, i);
+            application->widgets[i]->destroy();
+        }
+        view_dispatcher_free(viewDispatcher);
+        viewDispatcher = nullptr;
+    }
 }
 
 void UFZ::ViewDispatcher::switchToView(uint32_t id) const noexcept
@@ -164,11 +172,6 @@ void UFZ::ViewDispatcher::sendToFront() const noexcept
 void UFZ::ViewDispatcher::sendToBack() const noexcept
 {
     view_dispatcher_send_to_back(viewDispatcher);
-}
-
-UFZ::ViewDispatcher::~ViewDispatcher() noexcept
-{
-    free();
 }
 
 void UFZ::ViewDispatcher::sendCustomEvent(uint32_t event) const noexcept
@@ -243,11 +246,6 @@ bool UFZ::SceneManager::searchAndSwitchToAnotherScene(uint32_t id) const noexcep
 void UFZ::SceneManager::stop() const noexcept
 {
     scene_manager_stop(sceneManager);
-}
-
-UFZ::SceneManager::~SceneManager()
-{
-    free();
 }
 
 void UFZ::SceneManager::alloc(const SceneManagerHandlers& handlers, Application& app) noexcept

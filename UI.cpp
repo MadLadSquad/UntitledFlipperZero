@@ -29,11 +29,6 @@ void UFZ::View::free() noexcept
     bAllocated = false;
 }
 
-UFZ::View::~View() noexcept
-{
-    free();
-}
-
 const UFZ::View& UFZ::View::setDrawCallback(ViewDrawCallback callback) const noexcept
 {
     view_set_draw_callback(view, callback);
@@ -239,11 +234,6 @@ const UFZ::ButtonPanel& UFZ::ButtonPanel::addIcon(uint16_t x, uint16_t y, const 
 // ===================================================== Byte Input ====================================================
 // =====================================================================================================================
 
-UFZ::ByteInput::~ByteInput() noexcept
-{
-    free();
-}
-
 void UFZ::ByteInput::setResultCallback(ByteInputCallback inputCallback, ByteChangedCallback changedCallback, void* context, uint8_t* bytes, uint8_t bytesCount) noexcept
 {
     byte_input_set_result_callback(byte_input, inputCallback, changedCallback, context, bytes, bytesCount);
@@ -335,11 +325,6 @@ void UFZ::DialogEx::disableExtendedEvents() const noexcept
 // ==================================================== Empty Screen ===================================================
 // =====================================================================================================================
 
-UFZ::EmptyScreen::~EmptyScreen() noexcept
-{
-    free();
-}
-
 void UFZ::EmptyScreen::free() noexcept
 {
     FREE_GUARD(empty_screen_free, empty_screen);
@@ -358,11 +343,6 @@ UFZ::View UFZ::EmptyScreen::getWidgetView() noexcept
 // =====================================================================================================================
 // ====================================================== Loading ======================================================
 // =====================================================================================================================
-
-UFZ::Loading::~Loading() noexcept
-{
-    free();
-}
 
 void UFZ::Loading::free() noexcept
 {

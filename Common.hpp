@@ -38,14 +38,13 @@ namespace UFZ
         void sendToBack() const noexcept;
 
         void stop() const noexcept;
-
-        ~ViewDispatcher() noexcept;
     private:
         friend class Application;
 
         void init() noexcept;
         void free() noexcept;
 
+        Application* application = nullptr;
         ::ViewDispatcher* viewDispatcher = nullptr;
     };
 
@@ -70,8 +69,6 @@ namespace UFZ
         [[nodiscard]] bool searchAndSwitchToAnotherScene(uint32_t id) const noexcept;
 
         void stop() const noexcept;
-
-        ~SceneManager();
     private:
         friend class Application;
 
@@ -114,8 +111,6 @@ namespace UFZ
         bool removeRecursiveSimple(const char* path) const noexcept;
         bool mkdirSimple(const char* path) const noexcept;
         void getNextFilename(const char* dirname, const char* filename, const char* fileExtension, FuriString* nextFilename, uint8_t maxLength) const noexcept;
-
-        ~Filesystem() noexcept;
     private:
         friend class Application;
         friend class File;
@@ -132,7 +127,7 @@ namespace UFZ
     public:
         Application() = default;
         explicit Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin = [](Application&) -> void {}, uint32_t tickPeriod = 0) noexcept;
-        void init(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin = [](Application&) -> void {}, uint32_t tickPeriod = 0) noexcept;
+        void run(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin = [](Application&) -> void {}, uint32_t tickPeriod = 0) noexcept;
 
         template<typename T>
         T* getWidget(size_t i) noexcept
@@ -142,13 +137,14 @@ namespace UFZ
 
         const ViewDispatcher& getViewDispatcher() noexcept;
         const SceneManager& getSceneManager() noexcept;
-
         const Filesystem& getFilesystem() noexcept;
 
         void* getUserPointer() noexcept;
 
         void destroy() noexcept;
     private:
+        friend class ViewDispatcher;
+
         SceneManager sceneManager;
         ViewDispatcher viewDispatcher;
         Gui* gui = nullptr;

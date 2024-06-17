@@ -36,7 +36,6 @@
     using UWidget::UWidget;                                                                                         \
     inline operator ::x*() noexcept { return y; };                                                                  \
     x() = default;                                                                                                  \
-    virtual ~x() noexcept override { destroy(); };                                                                     \
     inline virtual UFZ::View getWidgetView() noexcept override { return UFZ::View(FROM_PREFIX(y, get_view)(y)); }   \
     inline virtual void reset() noexcept override { FROM_PREFIX(y, reset)(y); };                                    \
 private:                                                                                                            \
@@ -83,7 +82,6 @@ namespace UFZ
         [[nodiscard]] const View& commitModel(bool bUpdate) const noexcept;
 
         void free() noexcept;
-        ~View() noexcept;
     private:
         friend class UWidget;
         bool bAllocated = false;
@@ -102,7 +100,6 @@ namespace UFZ
         {
         }
 
-        virtual ~UWidget() noexcept = default;
         void destroy() noexcept;
 
         virtual void reset() noexcept = 0;
@@ -114,6 +111,7 @@ namespace UFZ
         Application* application = nullptr;
     private:
         friend class Application;
+        friend class ViewDispatcher;
 
         size_t id = 0;
         std::vector<View*> views{};
@@ -170,7 +168,6 @@ namespace UFZ
     {
     public:
         ByteInput() = default;
-        virtual ~ByteInput() noexcept override;
 
         void setResultCallback(ByteInputCallback inputCallback, ByteChangedCallback changedCallback, void* context, uint8_t* bytes, uint8_t bytesCount) noexcept;
         void setHeaderText(const char* text) noexcept;
@@ -202,7 +199,6 @@ namespace UFZ
     {
     public:
         EmptyScreen() = default;
-        virtual ~EmptyScreen() noexcept override;
     private:
         ::EmptyScreen* empty_screen = nullptr;
 
@@ -215,7 +211,6 @@ namespace UFZ
     {
     public:
         Loading() = default;
-        virtual ~Loading() noexcept override;
     private:
         ::Loading* loading = nullptr;
 
