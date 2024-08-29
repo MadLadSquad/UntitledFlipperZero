@@ -6,7 +6,7 @@
 
 void UFZ::Filesystem::init() noexcept
 {
-    storage = (::Storage*)furi_record_open(RECORD_STORAGE);
+    storage = static_cast<Storage*>(furi_record_open(RECORD_STORAGE));
 }
 
 FS_Error UFZ::Filesystem::timestamp(const char* path, uint32_t* timestamp) const noexcept
@@ -64,12 +64,12 @@ void UFZ::Filesystem::resolvePathAndEnsureAppDirectory(FuriString* path) const n
     storage_common_resolve_path_and_ensure_app_directory(storage, path);
 }
 
-bool UFZ::Filesystem::areEquivalent(const char* path1, const char* path2, bool bTruncate) const noexcept
+bool UFZ::Filesystem::areEquivalent(const char* path1, const char* path2, const bool bTruncate) const noexcept
 {
     return storage_common_equivalent_path(storage, path1, path2, bTruncate);
 }
 
-const char* UFZ::Filesystem::getErrorDescription(FS_Error error) noexcept
+const char* UFZ::Filesystem::getErrorDescription(const FS_Error error) noexcept
 {
     return storage_error_get_desc(error);
 }
@@ -99,7 +99,7 @@ bool UFZ::Filesystem::mkdirSimple(const char* path) const noexcept
     return storage_simply_mkdir(storage, path);
 }
 
-void UFZ::Filesystem::getNextFilename(const char* dirname, const char* filename, const char* fileExtension, FuriString* nextFilename, uint8_t maxLength) const noexcept
+void UFZ::Filesystem::getNextFilename(const char* dirname, const char* filename, const char* fileExtension, FuriString* nextFilename, const uint8_t maxLength) const noexcept
 {
     storage_get_next_filename(storage, dirname, filename, fileExtension, nextFilename, maxLength);
 }
@@ -122,12 +122,12 @@ UFZ::File::File(const UFZ::Filesystem& store) noexcept
     storage = const_cast<Filesystem*>(&store);
 }
 
-UFZ::File::File(const UFZ::Filesystem& store, const char* path, FS_AccessMode accessMode, FS_OpenMode openMode) noexcept
+UFZ::File::File(const UFZ::Filesystem& store, const char* path, const FS_AccessMode accessMode, const FS_OpenMode openMode) noexcept
 {
     open(store, path, accessMode, openMode);
 }
 
-bool UFZ::File::open(const UFZ::Filesystem& store, const char* path, FS_AccessMode accessMode, FS_OpenMode openMode) noexcept
+bool UFZ::File::open(const UFZ::Filesystem& store, const char* path, const FS_AccessMode accessMode, const FS_OpenMode openMode) noexcept
 {
 
     storage = const_cast<Filesystem*>(&store);
@@ -135,57 +135,57 @@ bool UFZ::File::open(const UFZ::Filesystem& store, const char* path, FS_AccessMo
     return storage_file_open(file, path, accessMode, openMode);
 }
 
-bool UFZ::File::isOpen() noexcept
+bool UFZ::File::isOpen() const noexcept
 {
     return storage_file_is_open(file);
 }
 
-bool UFZ::File::isDirectory() noexcept
+bool UFZ::File::isDirectory() const noexcept
 {
     return storage_file_is_dir(file);
 }
 
-size_t UFZ::File::read(void* buffer, size_t bytesToRead) noexcept
+size_t UFZ::File::read(void* buffer, const size_t bytesToRead) const noexcept
 {
     return storage_file_read(file, buffer, bytesToRead);
 }
 
-size_t UFZ::File::write(void* buffer, size_t bytesToWrite) noexcept
+size_t UFZ::File::write(const void* buffer, const size_t bytesToWrite) const noexcept
 {
     return storage_file_write(file, buffer, bytesToWrite);
 }
 
-uint64_t UFZ::File::tell() noexcept
+uint64_t UFZ::File::tell() const noexcept
 {
     return storage_file_tell(file);
 }
 
-bool UFZ::File::seek(uint32_t offset, bool bFromStart) noexcept
+bool UFZ::File::seek(const uint32_t offset, const bool bFromStart) const noexcept
 {
     return storage_file_seek(file, offset, bFromStart);
 }
 
-bool UFZ::File::truncate() noexcept
+bool UFZ::File::truncate() const noexcept
 {
     return storage_file_truncate(file);
 }
 
-uint64_t UFZ::File::size() noexcept
+uint64_t UFZ::File::size() const noexcept
 {
     return storage_file_size(file);
 }
 
-bool UFZ::File::sync() noexcept
+bool UFZ::File::sync() const noexcept
 {
     return storage_file_sync(file);
 }
 
-bool UFZ::File::eof() noexcept
+bool UFZ::File::eof() const noexcept
 {
     return storage_file_eof(file);
 }
 
-bool UFZ::File::copyToFile(File& source, File& destination, size_t size) noexcept
+bool UFZ::File::copyToFile(const File& source, const File& destination, const size_t size) noexcept
 {
     return storage_file_copy_to_file(source.file, destination.file, size);
 }
@@ -226,17 +226,17 @@ bool UFZ::Directory::open(UFZ::File& f, const char* path) noexcept
     return storage_dir_open(file->file, path);
 }
 
-bool UFZ::Directory::close() noexcept
+bool UFZ::Directory::close() const noexcept
 {
     return storage_dir_close(file->file);
 }
 
-bool UFZ::Directory::read(FileInfo *info, char *name, uint16_t nameLength) noexcept
+bool UFZ::Directory::read(FileInfo* info, char* name, const uint16_t nameLength) const noexcept
 {
     return storage_dir_read(file->file, info, name, nameLength);
 }
 
-bool UFZ::Directory::rewind() noexcept
+bool UFZ::Directory::rewind() const noexcept
 {
     return storage_dir_rewind(file->file);
 }

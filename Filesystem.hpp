@@ -14,10 +14,10 @@ namespace UFZ
         File(const UFZ::Filesystem& store, const char* path, FS_AccessMode accessMode, FS_OpenMode openMode) noexcept;
         bool open(const UFZ::Filesystem& store, const char* path, FS_AccessMode accessMode, FS_OpenMode openMode) noexcept;
 
-        bool isOpen() noexcept;
-        bool isDirectory() noexcept;
+        [[nodiscard]] bool isOpen() const noexcept;
+        [[nodiscard]] bool isDirectory() const noexcept;
 
-        size_t read(void* buffer, size_t bytesToRead) noexcept;
+        size_t read(void* buffer, size_t bytesToRead) const noexcept;
 
         template<typename T>
         size_t read(std::vector<T>& buffer, size_t chunkSize = 128) noexcept
@@ -25,7 +25,7 @@ namespace UFZ
             size_t sz = 0;
             buffer.resize(buffer.size() + chunkSize);
 
-            while (size_t a = read(buffer.data() + sz, chunkSize) != 0)
+            while (const size_t a = read(buffer.data() + sz, chunkSize) != 0)
             {
                 sz += a;
                 buffer.resize(buffer.size() + chunkSize);
@@ -34,7 +34,7 @@ namespace UFZ
             return sz;
         }
 
-        size_t write(void* buffer, size_t bytesToWrite) noexcept;
+        size_t write(const void* buffer, size_t bytesToWrite) const noexcept;
 
         template<typename T>
         size_t write(const std::vector<T>& buffer) noexcept
@@ -42,15 +42,15 @@ namespace UFZ
             return write(buffer.data(), buffer.size());
         }
 
-        bool seek(uint32_t offset, bool bFromStart) noexcept;
-        uint64_t tell() noexcept;
-        bool truncate() noexcept;
-        uint64_t size() noexcept;
+        [[nodiscard]] bool seek(uint32_t offset, bool bFromStart) const noexcept;
+        [[nodiscard]] uint64_t tell() const noexcept;
+        [[nodiscard]] bool truncate() const noexcept;
+        [[nodiscard]] uint64_t size() const noexcept;
 
-        bool sync() noexcept;
-        bool eof() noexcept;
+        [[nodiscard]] bool sync() const noexcept;
+        [[nodiscard]] bool eof() const noexcept;
 
-        static bool copyToFile(File& source, File& destination, size_t size) noexcept;
+        static bool copyToFile(const File& source, const File& destination, size_t size) noexcept;
 
         void close() noexcept;
 
@@ -73,10 +73,10 @@ namespace UFZ
         explicit Directory(File& f) noexcept;
 
         bool open(File& f, const char* path) noexcept;
-        bool close() noexcept;
+        [[nodiscard]] bool close() const noexcept;
 
-        bool read(FileInfo* info, char* name, uint16_t nameLength) noexcept;
-        bool rewind() noexcept;
+        bool read(FileInfo* info, char* name, uint16_t nameLength) const noexcept;
+        [[nodiscard]] bool rewind() const noexcept;
     private:
         friend class Filesystem;
 
