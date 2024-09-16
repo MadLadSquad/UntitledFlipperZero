@@ -100,7 +100,7 @@ namespace UFZ
 
         void resolvePathAndEnsureAppDirectory(FuriString* path) const noexcept;
 
-        bool areEquivalent(const char* path1, const char* path2, bool bTruncate) const noexcept;
+        bool areEquivalent(const char* path1, const char* path2) const noexcept;
 
         [[nodiscard]] static const char* getErrorDescription(FS_Error error) noexcept;
 
