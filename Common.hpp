@@ -9,7 +9,7 @@
 #include <gui/scene_manager.h>
 
 // Only frees if memory is allocated
-#define FREE_GUARD(x, y) if ((y) != nullptr) x(y); (y) = nullptr;
+#define FREE_GUARD(x, y) if ((y) != nullptr) { x(y); (y) = nullptr; }
 
 #define SEND_CUSTOM_EVENT(x, y) (x)->getViewDispatcher().sendCustomEvent(y)
 
@@ -172,6 +172,6 @@ namespace UFZ
 
         void freeSceneManager() noexcept;
         void freeViewDispatcher() noexcept;
-        static void freeGUI() noexcept;
+        void freeGUI() noexcept;
     };
 }

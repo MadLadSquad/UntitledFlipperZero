@@ -87,7 +87,7 @@ namespace UFZ
         friend class UWidget;
         bool bAllocated = false;
 
-        std::function<void(View&)> deferredSetupCallback{};
+        std::function<void(View&)> deferredSetupCallback = [](View&) -> void {};
 
         ::View* view = nullptr;
     };

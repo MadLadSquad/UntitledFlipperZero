@@ -1,5 +1,6 @@
 #include "Common.hpp"
 #include "UI.hpp"
+#include <new>
 
 UFZ::Application::Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, const uint32_t tickPeriod) noexcept
 {
@@ -24,10 +25,14 @@ void UFZ::Application::run(const std::vector<UWidget*>& widgetsRef, void* userPo
         exitCallbacks.push_back(a->exit);
     }
 
-    handlers.on_enter_handlers = enterCallbacks.data();
-    handlers.on_event_handlers = eventCallbacks.data();
-    handlers.on_exit_handlers = exitCallbacks.data();
-    memcpy((void*)&handlers.scene_num, (void*)&size, sizeof(uint32_t));
+    // SceneManagerHandlers::scene_num is const, so the struct cannot be assigned field-by-field.
+    // Construct it in place with placement new instead of casting away const (which is UB).
+    new (&handlers) SceneManagerHandlers{
+        enterCallbacks.data(),
+        eventCallbacks.data(),
+        exitCallbacks.data(),
+        size
+    };
 
     filesystem.init();
     begin(*this);
@@ -112,7 +117,11 @@ void UFZ::Application::freeViewDispatcher() noexcept
 
 void UFZ::Application::freeGUI() noexcept
 {
-    furi_record_close(RECORD_GUI);
+    if (gui != nullptr)
+    {
+        furi_record_close(RECORD_GUI);
+        gui = nullptr;
+    }
 }
 
 const UFZ::ViewDispatcher& UFZ::Application::getViewDispatcher() const noexcept

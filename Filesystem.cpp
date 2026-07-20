@@ -129,7 +129,8 @@ UFZ::File::File(const UFZ::Filesystem& store, const char* path, const FS_AccessM
 
 bool UFZ::File::open(const UFZ::Filesystem& store, const char* path, const FS_AccessMode accessMode, const FS_OpenMode openMode) noexcept
 {
-
+    // Release any handle from a previous open() so re-opening does not leak it.
+    free();
     storage = const_cast<Filesystem*>(&store);
     init();
     return storage_file_open(file, path, accessMode, openMode);
@@ -228,15 +229,21 @@ bool UFZ::Directory::open(UFZ::File& f, const char* path) noexcept
 
 bool UFZ::Directory::close() const noexcept
 {
+    if (file == nullptr)
+        return false;
     return storage_dir_close(file->file);
 }
 
 bool UFZ::Directory::read(FileInfo* info, char* name, const uint16_t nameLength) const noexcept
 {
+    if (file == nullptr)
+        return false;
     return storage_dir_read(file->file, info, name, nameLength);
 }
 
 bool UFZ::Directory::rewind() const noexcept
 {
+    if (file == nullptr)
+        return false;
     return storage_dir_rewind(file->file);
 }
