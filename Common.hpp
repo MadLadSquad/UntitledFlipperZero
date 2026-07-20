@@ -6,6 +6,7 @@
 #include <gui/gui.h>
 #include <gui/icon_i.h>
 #include <gui/view_dispatcher.h>
+#include <gui/scene_manager.h>
 
 // Only frees if memory is allocated
 #define FREE_GUARD(x, y) if ((y) != nullptr) x(y); (y) = nullptr;
@@ -132,6 +133,7 @@ namespace UFZ
         template<typename T>
         T* getWidget(const size_t i) noexcept
         {
+            furi_assert(i < widgets.size());
             return static_cast<T*>(widgets[i]);
         }
 

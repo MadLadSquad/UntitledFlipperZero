@@ -12,7 +12,7 @@ void UFZ::Application::run(const std::vector<UWidget*>& widgetsRef, void* userPo
     tickInterval = tickPeriod;
     ctx = userPointer;
 
-    uint32_t size = widgets.size();
+    uint32_t size = static_cast<uint32_t>(widgets.size());
     enterCallbacks.reserve(size);
     eventCallbacks.reserve(size);
     exitCallbacks.reserve(size);

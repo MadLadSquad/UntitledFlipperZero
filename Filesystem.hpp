@@ -20,7 +20,7 @@ namespace UFZ
         size_t read(void* buffer, size_t bytesToRead) const noexcept;
 
         template<typename T>
-        size_t read(std::vector<T>& buffer, size_t chunkSize = 128) noexcept
+        size_t read(std::vector<T>& buffer, size_t chunkSize = 128) const noexcept
         {
             size_t sz = 0;
             buffer.resize(buffer.size() + chunkSize);
@@ -37,7 +37,7 @@ namespace UFZ
         size_t write(const void* buffer, size_t bytesToWrite) const noexcept;
 
         template<typename T>
-        size_t write(const std::vector<T>& buffer) noexcept
+        size_t write(const std::vector<T>& buffer) const noexcept
         {
             return write(buffer.data(), buffer.size());
         }

@@ -148,7 +148,7 @@ namespace UFZ
         UFZ_COMPONENT(ButtonMenu, button_menu);
     public:
         ButtonMenuItem* addItem(const char* label, int32_t index, ButtonMenuItemCallback callback, ButtonMenuItemType type, void* context) const noexcept;
-        void setHeader(const char* header) const;
+        void setHeader(const char* header) const noexcept;
         void setSelectedItem(uint32_t index) const noexcept;
     };
 
@@ -246,19 +246,19 @@ namespace UFZ
         const Popup& setHeader(const char* text, uint8_t x, uint8_t y, Align horizontal, Align vertical) const noexcept;
         const Popup& setText(const char* text, uint8_t x, uint8_t y, Align horizontal, Align vertical) const noexcept;
         const Popup& setIcon(uint8_t x, uint8_t y, const Icon* icon) const noexcept;
-        [[nodiscard]] const Popup& setTimeout(uint32_t milliseconds) const noexcept;
+        const Popup& setTimeout(uint32_t milliseconds) const noexcept;
 
         void enableTimeout() const noexcept;
-        void disableTimout() const noexcept;
+        void disableTimeout() const noexcept;
     };
 
     class Submenu final : public UWidget
     {
         UFZ_COMPONENT(Submenu, submenu);
     public:
-        [[nodiscard]] const Submenu& addItem(const char* label, uint32_t index, SubmenuItemCallback callback, void* context) const noexcept;
-        [[nodiscard]] const Submenu& setSelectedItem(uint32_t index) const noexcept;
-        [[nodiscard]] const Submenu& setHeader(const char* header) const noexcept;
+        const Submenu& addItem(const char* label, uint32_t index, SubmenuItemCallback callback, void* context) const noexcept;
+        const Submenu& setSelectedItem(uint32_t index) const noexcept;
+        const Submenu& setHeader(const char* header) const noexcept;
     };
 
     class TextBox final : public UWidget
@@ -266,8 +266,8 @@ namespace UFZ
         UFZ_COMPONENT(TextBox, text_box);
     public:
         const TextBox& setText(const char* text) const noexcept;
-        [[nodiscard]] const TextBox& setFont(TextBoxFont font) const noexcept;
-        [[nodiscard]] const TextBox& setFocus(TextBoxFocus focus) const noexcept;
+        const TextBox& setFont(TextBoxFont font) const noexcept;
+        const TextBox& setFocus(TextBoxFocus focus) const noexcept;
     };
 
     class TextInput final : public UWidget
@@ -300,6 +300,6 @@ namespace UFZ
         const Widget& addTextScrollElement(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const char* text) const noexcept;
         const Widget& addButtonElement(GuiButtonType type, const char* text, ButtonCallback callback, void* context) const noexcept;
         const Widget& addIconElement(uint8_t x, uint8_t y, const Icon* icon) const noexcept;
-        [[nodiscard]] const Widget& addFrameElement(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t radius) const noexcept;
+        const Widget& addFrameElement(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t radius) const noexcept;
     };
 }

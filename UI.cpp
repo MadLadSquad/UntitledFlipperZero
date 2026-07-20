@@ -189,7 +189,7 @@ ButtonMenuItem* UFZ::ButtonMenu::addItem(const char* label, const int32_t index,
     return button_menu_add_item(button_menu, label, index, callback, type, context);
 }
 
-void UFZ::ButtonMenu::setHeader(const char* header) const
+void UFZ::ButtonMenu::setHeader(const char* header) const noexcept
 {
     button_menu_set_header(button_menu, header);
 }
@@ -416,7 +416,7 @@ void UFZ::Popup::enableTimeout() const noexcept
     popup_enable_timeout(popup);
 }
 
-void UFZ::Popup::disableTimout() const noexcept
+void UFZ::Popup::disableTimeout() const noexcept
 {
     popup_disable_timeout(popup);
 }
