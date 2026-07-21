@@ -275,7 +275,7 @@ void UFZ::NumberInput::setResultCallback(const NumberInputCallback inputCallback
     number_input_set_result_callback(number_input, inputCallback, context, currentNumber, min, max);
 }
 
-void UFZ::NumberInput::setHeaderText(const char* text) noexcept
+void UFZ::NumberInput::setHeaderText(const char* text) const noexcept
 {
     number_input_set_header_text(number_input, text);
 }

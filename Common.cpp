@@ -1,17 +1,18 @@
 #include "Common.hpp"
 #include "UI.hpp"
 #include <new>
+#include <utility>
 
-UFZ::Application::Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, const uint32_t tickPeriod) noexcept
+UFZ::Application::Application(std::vector<UWidget*> widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, const uint32_t tickPeriod) noexcept
 {
-    run(widgetsRef, userPointer, begin, tickPeriod);
+    run(std::move(widgetsRef), userPointer, begin, tickPeriod);
 }
 
 // Single-use per Application instance: the callback vectors below are appended to, not cleared,
 // so calling run() a second time would build handlers from the previous run's stale callbacks.
-void UFZ::Application::run(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, const uint32_t tickPeriod) noexcept
+void UFZ::Application::run(std::vector<UWidget*> widgetsRef, void* userPointer, const std::function<void(Application&)>& begin, const uint32_t tickPeriod) noexcept
 {
-    widgets = widgetsRef;
+    widgets = std::move(widgetsRef);
     tickInterval = tickPeriod;
     ctx = userPointer;
 
@@ -161,7 +162,7 @@ void UFZ::ViewDispatcher::free() noexcept
     {
         for (size_t i = 0; i < application->widgets.size(); i++)
         {
-            view_dispatcher_remove_view(application->viewDispatcher.viewDispatcher, i);
+            view_dispatcher_remove_view(viewDispatcher, i);
             application->widgets[i]->destroy();
         }
         view_dispatcher_free(viewDispatcher);

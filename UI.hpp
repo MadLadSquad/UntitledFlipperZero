@@ -44,8 +44,8 @@ private:                                                                        
     inline virtual void alloc() noexcept override { (y) = FROM_PREFIX(y, alloc)(); };                               \
     inline virtual void free() noexcept override { FREE_GUARD(FROM_PREFIX(y, free), y); };
 
-#define GET_WIDGET_P(x, y, z) ((UFZ::Application*)(x))->getWidget<y>(z)
-#define RENDER_VIEW(x, y) ((UFZ::Application*)(x))->getViewDispatcher().switchToView(y)
+#define GET_WIDGET_P(x, y, z) (static_cast<UFZ::Application*>(x))->getWidget<y>(z)
+#define RENDER_VIEW(x, y) (static_cast<UFZ::Application*>(x))->getViewDispatcher().switchToView(y)
 
 namespace UFZ
 {
@@ -167,7 +167,7 @@ namespace UFZ
         const ButtonPanel& addIcon(uint16_t x, uint16_t y, const Icon* icon) const noexcept;
     };
 
-    class ByteInput : public UWidget
+    class ByteInput final : public UWidget
     {
     public:
         ByteInput() = default;
@@ -183,13 +183,13 @@ namespace UFZ
         virtual void reset() noexcept override;
     };
 
-    class NumberInput : public UWidget
+    class NumberInput final : public UWidget
     {
     public:
         NumberInput() = default;
 
         void setResultCallback(NumberInputCallback inputCallback, void* context, int32_t currentNumber, int32_t min, int32_t max) const noexcept;
-        void setHeaderText(const char* text) noexcept;
+        void setHeaderText(const char* text) const noexcept;
     private:
         ::NumberInput* number_input = nullptr;
 
@@ -215,7 +215,7 @@ namespace UFZ
         void disableExtendedEvents() const noexcept;
     };
 
-    class EmptyScreen : public UWidget
+    class EmptyScreen final : public UWidget
     {
     public:
         EmptyScreen() = default;
@@ -228,7 +228,7 @@ namespace UFZ
         virtual void reset() noexcept override;
     };
 
-    class Loading : public UWidget
+    class Loading final : public UWidget
     {
     public:
         Loading() = default;
