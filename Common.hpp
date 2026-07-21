@@ -128,6 +128,11 @@ namespace UFZ
     public:
         Application() = default;
         explicit Application(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin = [](Application&) -> void {}, uint32_t tickPeriod = 0) noexcept;
+
+        // Single-use: call run() (or the constructor that forwards to it) exactly once per
+        // Application instance. The harvested callback vectors are appended to, not reset, so a
+        // second run() would leave the SceneManagerHandlers pointing at the previous run's stale
+        // callbacks. Create a fresh Application instead of reusing one.
         void run(const std::vector<UWidget*>& widgetsRef, void* userPointer, const std::function<void(Application&)>& begin = [](Application&) -> void {}, uint32_t tickPeriod = 0) noexcept;
 
         template<typename T>

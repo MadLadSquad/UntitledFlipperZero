@@ -31,6 +31,8 @@ Three modules, each a header/source pair:
 3. Allocates the SceneManager, ViewDispatcher (each widget gets `alloc()`ed and registered under its index), and GUI, then enters scene 0 and blocks in `view_dispatcher_run` until `EXIT_APPLICATION`/`stop()`.
 4. Cleanup is explicit: the caller invokes `application.destroy()` after `run()` returns (guarded by `bDestroyed`, as is `UWidget::destroy()`).
 
+`run()` is **single-use per `Application` instance** — call it (or the constructor that forwards to it) exactly once. The `enter`/`event`/`exit` callback vectors are appended to, not cleared, so a second `run()` would build the `SceneManagerHandlers` from the previous run's stale callbacks. Reuse means constructing a fresh `Application`, not calling `run()` again.
+
 The scene callbacks receive the raw Flipper context; the `Application*` is that context, and app state is reached via `Application::getUserPointer()`. `GET_WIDGET_P(app, Type, index)` and `RENDER_VIEW(app, index)` (`UI.hpp`) do widget lookup / view switching by that same index.
 
 ### The UFZ_COMPONENT macro

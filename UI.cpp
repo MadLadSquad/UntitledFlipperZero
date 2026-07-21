@@ -519,9 +519,9 @@ void UFZ::TextInput::setValidator(const TextInputValidatorCallback callback, voi
     text_input_set_validator(text_input, callback, context);
 }
 
-void UFZ::TextInput::getValidatorCallbackContext() const noexcept
+void* UFZ::TextInput::getValidatorCallbackContext() const noexcept
 {
-    text_input_get_validator_callback_context(text_input);
+    return text_input_get_validator_callback_context(text_input);
 }
 
 void UFZ::TextInput::setHeaderText(const char* text) const noexcept

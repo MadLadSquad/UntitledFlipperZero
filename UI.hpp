@@ -280,7 +280,7 @@ namespace UFZ
     public:
         void setResultCallback(TextInputCallback callback, void* callbackContext, char* textBuffer, size_t textBufferSize, bool clearDefaultText) const noexcept;
         void setValidator(TextInputValidatorCallback callback, void* context) const noexcept;
-        void getValidatorCallbackContext() const noexcept;
+        [[nodiscard]] void* getValidatorCallbackContext() const noexcept;
         void setHeaderText(const char* text) const noexcept;
     };
 
