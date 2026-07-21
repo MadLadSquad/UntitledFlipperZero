@@ -26,19 +26,26 @@ namespace UFZ
 
         size_t read(void* buffer, size_t bytesToRead) const noexcept;
 
+        // Appends the file contents to buffer, growing it chunkSize elements at a time.
+        // chunkSize is a count of T elements; each iteration reads up to that many
+        // elements and stops on the first short read (end of file). Returns bytes read.
         template<typename T>
         size_t read(std::vector<T>& buffer, size_t chunkSize = 128) const noexcept
         {
-            size_t sz = 0;
-            buffer.resize(buffer.size() + chunkSize);
+            const size_t start = buffer.size();
+            const size_t chunkBytes = chunkSize * sizeof(T);
+            size_t elementsRead = 0;
+            size_t bytes;
 
-            while (const size_t a = read(buffer.data() + sz, chunkSize) != 0)
+            do
             {
-                sz += a;
-                buffer.resize(buffer.size() + chunkSize);
-            }
-            buffer.shrink_to_fit();
-            return sz;
+                buffer.resize(start + elementsRead + chunkSize);
+                bytes = read(buffer.data() + start + elementsRead, chunkBytes);
+                elementsRead += bytes / sizeof(T);
+            } while (bytes == chunkBytes);
+
+            buffer.resize(start + elementsRead);
+            return elementsRead * sizeof(T);
         }
 
         size_t write(const void* buffer, size_t bytesToWrite) const noexcept;
@@ -46,7 +53,7 @@ namespace UFZ
         template<typename T>
         size_t write(const std::vector<T>& buffer) const noexcept
         {
-            return write(buffer.data(), buffer.size());
+            return write(buffer.data(), buffer.size() * sizeof(T));
         }
 
         [[nodiscard]] bool seek(uint32_t offset, bool bFromStart) const noexcept;

@@ -374,7 +374,7 @@ void UFZ::EmptyScreen::free() noexcept
 
 void UFZ::EmptyScreen::alloc() noexcept
 {
-    empty_screen_alloc();
+    empty_screen = empty_screen_alloc();
 }
 
 UFZ::View UFZ::EmptyScreen::getWidgetView() noexcept

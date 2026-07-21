@@ -193,8 +193,13 @@ bool UFZ::File::copyToFile(const File& source, const File& destination, const si
 
 void UFZ::File::close() noexcept
 {
-    storage_file_close(file);
-    free();
+    // Guard against a never-opened or already-closed File: storage_file_close(nullptr)
+    // trips furi_check. free() nulls the handle, so a second close() is a no-op.
+    if (file != nullptr)
+    {
+        storage_file_close(file);
+        free();
+    }
 }
 
 UFZ::File::~File() noexcept
