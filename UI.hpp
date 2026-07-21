@@ -180,6 +180,7 @@ namespace UFZ
         virtual void alloc() noexcept override;
         virtual void free() noexcept override;
         virtual View getWidgetView() noexcept override;
+        virtual void reset() noexcept override;
     };
 
     class NumberInput : public UWidget
@@ -195,6 +196,7 @@ namespace UFZ
         virtual void alloc() noexcept override;
         virtual void free() noexcept override;
         virtual View getWidgetView() noexcept override;
+        virtual void reset() noexcept override;
     };
 
     class DialogEx final : public UWidget
@@ -223,6 +225,7 @@ namespace UFZ
         virtual void free() noexcept override;
         virtual void alloc() noexcept override;
         virtual View getWidgetView() noexcept override;
+        virtual void reset() noexcept override;
     };
 
     class Loading : public UWidget
@@ -235,6 +238,7 @@ namespace UFZ
         virtual void free() noexcept override;
         virtual void alloc() noexcept override;
         virtual View getWidgetView() noexcept override;
+        virtual void reset() noexcept override;
     };
 
     class Popup final : public UWidget

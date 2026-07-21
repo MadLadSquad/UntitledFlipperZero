@@ -12,6 +12,13 @@ namespace UFZ
         File() = default;
         explicit File(const Filesystem& store) noexcept;
         File(const UFZ::Filesystem& store, const char* path, FS_AccessMode accessMode, FS_OpenMode openMode) noexcept;
+
+        // Owns a raw ::File* freed in the destructor; copying would double-close it.
+        // Declaring the copy operations deleted also suppresses the implicit moves,
+        // so a File cannot be copied or moved (the app only uses scoped locals).
+        File(const File&) = delete;
+        File& operator=(const File&) = delete;
+
         bool open(const UFZ::Filesystem& store, const char* path, FS_AccessMode accessMode, FS_OpenMode openMode) noexcept;
 
         [[nodiscard]] bool isOpen() const noexcept;

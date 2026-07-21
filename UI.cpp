@@ -260,6 +260,11 @@ void UFZ::ByteInput::free() noexcept
     FREE_GUARD(byte_input_free, byte_input);
 }
 
+// The C module exposes no byte_input_reset(); nothing to forward to.
+void UFZ::ByteInput::reset() noexcept
+{
+}
+
 // =====================================================================================================================
 // =================================================== Number Input ====================================================
 // =====================================================================================================================
@@ -268,6 +273,31 @@ void UFZ::NumberInput::setResultCallback(const NumberInputCallback inputCallback
                                          const int32_t min, const int32_t max) const noexcept
 {
     number_input_set_result_callback(number_input, inputCallback, context, currentNumber, min, max);
+}
+
+void UFZ::NumberInput::setHeaderText(const char* text) noexcept
+{
+    number_input_set_header_text(number_input, text);
+}
+
+UFZ::View UFZ::NumberInput::getWidgetView() noexcept
+{
+    return UFZ::View(number_input_get_view(number_input));
+}
+
+void UFZ::NumberInput::alloc() noexcept
+{
+    number_input = number_input_alloc();
+}
+
+void UFZ::NumberInput::free() noexcept
+{
+    FREE_GUARD(number_input_free, number_input);
+}
+
+// The C module exposes no number_input_reset(); nothing to forward to.
+void UFZ::NumberInput::reset() noexcept
+{
 }
 
 
@@ -352,6 +382,11 @@ UFZ::View UFZ::EmptyScreen::getWidgetView() noexcept
     return UFZ::View(empty_screen_get_view(empty_screen));
 }
 
+// The C module exposes no empty_screen_reset(); nothing to forward to.
+void UFZ::EmptyScreen::reset() noexcept
+{
+}
+
 // =====================================================================================================================
 // ====================================================== Loading ======================================================
 // =====================================================================================================================
@@ -369,6 +404,11 @@ void UFZ::Loading::alloc() noexcept
 UFZ::View UFZ::Loading::getWidgetView() noexcept
 {
     return UFZ::View(loading_get_view(loading));
+}
+
+// The C module exposes no loading_reset(); nothing to forward to.
+void UFZ::Loading::reset() noexcept
+{
 }
 
 // =====================================================================================================================
