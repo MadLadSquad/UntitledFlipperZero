@@ -101,6 +101,12 @@ namespace UFZ
         {
         }
 
+        // Owns a ViewStack and the underlying module handle, both freed in destroy();
+        // copying would double-free them and duplicate the view registrations. Widgets are
+        // only ever handled by pointer, so delete the copies (this also suppresses moves).
+        UWidget(const UWidget&) = delete;
+        UWidget& operator=(const UWidget&) = delete;
+
         void destroy() noexcept;
 
         virtual void reset() noexcept = 0;

@@ -129,6 +129,18 @@ namespace UFZ
         Application() = default;
         explicit Application(std::vector<UWidget*> widgetsRef, void* userPointer, const std::function<void(Application&)>& begin = [](Application&) -> void {}, uint32_t tickPeriod = 0) noexcept;
 
+        // Self-referential: run() stores `this` into every widget, the view dispatcher's
+        // event-callback context, and the scene manager context. A copy would leave those
+        // pointing at the original and double-free the raw handles on destruction. Delete
+        // the copy operations (this also suppresses the implicit moves) — construct a fresh
+        // Application rather than copying one.
+        Application(const Application&) = delete;
+        Application& operator=(const Application&) = delete;
+
+        // Safety net over the explicit destroy(): idempotent via bDestroyed, so an explicit
+        // destroy() after run() still runs cleanup exactly once.
+        ~Application() noexcept;
+
         // Single-use: call run() (or the constructor that forwards to it) exactly once per
         // Application instance. The harvested callback vectors are appended to, not reset, so a
         // second run() would leave the SceneManagerHandlers pointing at the previous run's stale

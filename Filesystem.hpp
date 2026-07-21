@@ -32,20 +32,29 @@ namespace UFZ
         template<typename T>
         size_t read(std::vector<T>& buffer, size_t chunkSize = 128) const noexcept
         {
+            // A zero chunk never advances the read cursor; the loop below would spin forever.
+            if (chunkSize == 0)
+                return 0;
+
             const size_t start = buffer.size();
             const size_t chunkBytes = chunkSize * sizeof(T);
             size_t elementsRead = 0;
+            size_t bytesRead = 0;
             size_t bytes;
 
             do
             {
                 buffer.resize(start + elementsRead + chunkSize);
                 bytes = read(buffer.data() + start + elementsRead, chunkBytes);
+                bytesRead += bytes;
                 elementsRead += bytes / sizeof(T);
             } while (bytes == chunkBytes);
 
+            // Only whole elements fit in a vector<T>; a trailing partial element (file size
+            // not a multiple of sizeof(T)) is dropped, but the returned byte count reflects
+            // everything read, so the caller can detect it (bytesRead % sizeof(T) != 0).
             buffer.resize(start + elementsRead);
-            return elementsRead * sizeof(T);
+            return bytesRead;
         }
 
         size_t write(const void* buffer, size_t bytesToWrite) const noexcept;
@@ -75,6 +84,11 @@ namespace UFZ
 
         ::File* file = nullptr;
         Filesystem* storage = nullptr;
+
+        // True while `file` is open as a directory (via Directory::open): selects
+        // storage_dir_close over storage_file_close at teardown so the handle is not
+        // closed as the wrong stream type. Reset by free().
+        bool bDirectory = false;
 
         void init() noexcept;
         void free() noexcept;

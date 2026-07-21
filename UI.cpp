@@ -16,6 +16,8 @@ UFZ::View::operator ::View*() const noexcept
 
 UFZ::View& UFZ::View::allocate() noexcept
 {
+    // Releasing any previously owned view first; overwriting it would orphan the handle.
+    free();
     view = view_alloc();
     bAllocated = true;
     return *this;

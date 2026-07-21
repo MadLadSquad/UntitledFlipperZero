@@ -96,10 +96,21 @@ void UFZ::Application::initGUI() noexcept
     view_dispatcher_attach_to_gui(viewDispatcher.viewDispatcher, gui, ViewDispatcherTypeFullscreen);
 }
 
+UFZ::Application::~Application() noexcept
+{
+    destroy();
+}
+
 void UFZ::Application::destroy() noexcept
 {
     if (!bDestroyed)
     {
+        // Fire the current scene's on_exit handler before teardown. Neither EXIT_APPLICATION
+        // nor backing out of the entry scene pops that scene off the stack, so without this
+        // its exit callback would never run. Done while the views still exist so exit
+        // handlers may safely touch widgets. Safe if run() never allocated the manager:
+        // SceneManager::stop() null-checks.
+        sceneManager.stop();
         freeSceneManager();
         freeViewDispatcher();
         freeGUI();
@@ -256,7 +267,8 @@ bool UFZ::SceneManager::searchAndSwitchToAnotherScene(const uint32_t id) const n
 
 void UFZ::SceneManager::stop() const noexcept
 {
-    scene_manager_stop(sceneManager);
+    if (sceneManager != nullptr)
+        scene_manager_stop(sceneManager);
 }
 
 void UFZ::SceneManager::alloc(const SceneManagerHandlers& handlers, Application& app) noexcept
